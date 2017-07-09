@@ -1,27 +1,117 @@
 ---
-title: "Making sense of the SCAA’s new Flavor Wheel"
-date: 2016-12-17T15:04:10.000Z
-description: The Coffee Taster’s Flavor Wheel, the official resource used by coffee tasters, has been revised for the first time this year.
-image: /img/blog/flavor_wheel.jpg
+title: Netlify memo
+date: 07/10/2017 7:04 AM
+description: This is a memo for myself.
+image: /img/スクリーンショット%202017-07-09%2017.28.36.png
 ---
+静的サイトHostingサービス。
 
-The SCAA updated the wheel to reflect the finer nuances needed to describe flavors more precisely. The new descriptions are more detailed and hence allow cuppers to distinguish between more flavors.
+- 無料でもけっこう機能もりもり
+- ハイパフォーマンス
+- HTTPSもいける
+- CDN(cloudfront)
+- 別ブランチをサブドメインに割り当てられる
+- アクセス制御もできる（無料では出来ない
 
-While this is going to be a big change for professional coffee tasters, it means a lot to you as a consumer as well. We’ll explain how the wheel came to be, how pros use it and what the flavors actually mean.
+tsukuruba 産の静的サイトにも使えるんじゃないか？と思ったりしつつ、
+とりあえず個人趣味的に試してみた記録。
 
-## What the updates mean to you
+## Pricing
 
-The Specialty Coffee Association of America (SCAA), founded in 1982, is a non-profit trade organization for the specialty coffee industry. With members located in more than 40 countries, SCAA represents every segment of the specialty coffee industry, including:
+<https://www.netlify.com/pricing/>
 
-- producers
-- roasters
-- importers/exporters
-- retailers
-- manufacturers
-- baristas
+Bronze(Free) < Silver < Gold < Platinum
 
-For over 30 years, SCAA has been dedicated to creating a vibrant specialty coffee community by recognizing, developing and promoting specialty coffee. SCAA sets and maintains quality standards for the industry, conducts market research, and provides education, training, resources, and business services for its members.
+けっこう無料で出来ちゃう。ありがたいが、大丈夫か。
+$2.1M も出資受けてるから大丈夫か、そのうち値上がりするのかも。
+<https://techcrunch.com/2016/08/17/netlify-a-sevice-for-quickly-rolling-out-static-websites-raises-2-1m/>
 
-Coffee cupping, or coffee tasting, is the practice of observing the tastes and aromas of brewed coffee. It is a professional practice but can be done informally by anyone or by professionals known as "Q Graders". A standard coffee cupping procedure involves deeply sniffing the coffee, then loudly slurping the coffee so it spreads to the back of the tongue.
+## Domain
 
-The coffee taster attempts to measure aspects of the coffee's taste, specifically the body (the texture or mouthfeel, such as oiliness), sweetness, acidity (a sharp and tangy feeling, like when biting into an orange), flavour (the characters in the cup), and aftertaste. Since coffee beans embody telltale flavours from the region where they were grown, cuppers may attempt to identify the coffee's origin.
+最初は、Project 単位で、`dermatologist-monkey-67732` とか謎のコードが割り振られ、
+`dermatologist-monkey-67732.netlify.com` になるが、コードを変更することも出来るし、
+カスタムドメインにすることも可能。（無料でおｋ
+https://in-progress.work/
+
+カスタムドメインじゃなければ↓
+https://dermatologist-monkey-67732.netlify.com/
+
+### Branches
+ブランチに対して、サブドメインをマッピング可能。
+https://develop.in-progress.work/
+↑developブランチ
+
+https://develop--dermatologist-monkey-67732.netlify.com/
+
+
+## Env
+
+`netlify.toml` という設定ファイルを通じて（or  管理画面でぽちぽち）変数を渡せる。
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "public"
+
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "development"
+```
+
+なので、develop ではログを吐くけど、production ではビルドで消す、とか可能。
+
+## HTTPS
+
+ボタンを押してぼんやりしていれば、Let's Encrypt による HTTPS 化がなされる。
+HTTP/2 もサポートしているが、CDN経由のAssetファイルへの対応はまだ実験中っぽい。
+連絡するとテスト対象にしてくれる雰囲気はある。
+
+## Deploys
+- GitHub プッシュで自動デプロイが標準
+- Test 通ったらデプロイ、したければ、恐らく `netlify-cli` を使えばいける
+- `dermatologist-monkey-67732.netlify.com` にはなるが、いろんなブランチ単位でデプロイされる
+
+### 例: favicon ブランチ
+
+特にサブドメインを設定していないが、カスタムドメインじゃない方で確認可能。
+https://deploy-preview-2--dermatologist-monkey-67732.netlify.com/
+
+## Notifications
+
+管理画面での通知設定。
+![image](https://user-images.githubusercontent.com/2628239/27992414-325cdf56-64cf-11e7-85b7-8078a4b8ba30.png)
+
+Slack
+<https://api.netlify.com/build_hooks/5961ed328ebdd92e25252f40>
+
+Slack に通知される様子。
+![image](https://user-images.githubusercontent.com/2628239/27992612-cb866e64-64d3-11e7-80f9-2e4f21656795.png)
+
+
+## Access Control 
+
+Password での制御と、 Role-based の制御があるが、
+どちらも、Bronze ではできない。
+
+Password プロテクションは Silver Plan から。  
+<https://www.netlify.com/docs/visitor-access-control/#password-protection>
+
+Role-based  は、Gold Plan から。  
+<https://www.netlify.com/docs/visitor-access-control/#role-based-access-controls-with-jwt-tokens>
+
+## Prerendering
+
+[prerender.io](https://prerender.io/) を利用して、SPA の pre-rendering してくれるらしい。
+試してはいない。
+
+## CMS
+[Netlify CMS](https://github.com/netlify/netlify-cms) なるものがある。試してない。
+
+## 余談
+
+- 大した中身ではないが、[ITS 検診機関一覧](http://www.its-kenpo.or.jp/kanri/keiyaku/ichiran/)の地図View である
+- `in-progress.work` のドメインは 10円だった
+
+
